@@ -24,6 +24,12 @@ jobs:
 
           git remote add upstream https://github.com/opencv/opencv.git
           git fetch upstream
+          
+          # Neither forget the -b opt,
+          # the feature/x ref is ambiguous at this stage
+          git checkout -b 4.x origin/4.x
+          git merge --no-edit upstream/4.x
+          git push origin 4.x
 
           git checkout 4.x
           git rebase upstream/4.x
