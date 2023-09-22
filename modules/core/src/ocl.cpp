@@ -51,7 +51,6 @@
 #include <set>
 #include <string>
 #include <sstream>
-#include <iostream> // std::cerr
 #include <fstream>
 #if !(defined _MSC_VER) || (defined _MSC_VER && _MSC_VER > 1700)
 #include <inttypes.h>
@@ -1611,7 +1610,7 @@ struct Device::Impl
         if (vendorName_ == "Advanced Micro Devices, Inc." ||
             vendorName_ == "AMD")
             vendorID_ = VENDOR_AMD;
-        else if (vendorName_ == "Intel(R) Corporation" || vendorName_ == "Intel" || strstr(name_.c_str(), "Iris") != 0)
+        else if (vendorName_ == "Intel(R) Corporation" || vendorName_ == "Intel" || vendorName_ == "Intel Inc." || strstr(name_.c_str(), "Iris") != 0)
             vendorID_ = VENDOR_INTEL;
         else if (vendorName_ == "NVIDIA Corporation")
             vendorID_ = VENDOR_NVIDIA;

@@ -52,7 +52,7 @@ public:
     }
 
     void testONNXModels(const String& basename, const Extension ext = npy,
-                        const double l1 = 0, const float lInf = 0, const bool useSoftmax = false,
+                        double l1 = 0, double lInf = 0, const bool useSoftmax = false,
                         bool checkNoFallbacks = true, int numInps = 1)
     {
         String onnxmodel = _tf("models/" + basename + ".onnx", required);
@@ -102,7 +102,12 @@ public:
             netSoftmax.setInput(ref);
             ref = netSoftmax.forward();
         }
-        normAssert(ref, out, "", l1 ? l1 : default_l1, lInf ? lInf : default_lInf);
+        if (backend == DNN_BACKEND_INFERENCE_ENGINE_NGRAPH && target == DNN_TARGET_OPENCL)
+        {
+            l1 = std::max(l1, 1.4e-3);
+            lInf = std::max(lInf, 8e-3);
+        }
+        normAssert(ref, out, basename.c_str(), l1 ? l1 : default_l1, lInf ? lInf : default_lInf);
         if (checkNoFallbacks)
             expectNoFallbacksFromIE(net);
     }
@@ -1017,6 +1022,7 @@ TEST_P(Test_ONNX_layers, Padding)
 TEST_P(Test_ONNX_layers, Resize)
 {
     testONNXModels("resize_nearest");
+    testONNXModels("tf_half_pixel_for_nn");
     if (backend == DNN_BACKEND_INFERENCE_ENGINE_NN_BUILDER_2019)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_IE_NN_BUILDER);
     testONNXModels("resize_bilinear");
@@ -1146,6 +1152,7 @@ TEST_P(Test_ONNX_layers, Split)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_IE_NN_BUILDER);
     if (backend == DNN_BACKEND_INFERENCE_ENGINE_NGRAPH)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_IE_NGRAPH);
+    testONNXModels("split_0");
     testONNXModels("split_1");
     testONNXModels("split_2");
     testONNXModels("split_3");
@@ -1406,6 +1413,56 @@ TEST_P(Test_ONNX_layers, LSTM_layout_batch)
     if(backend == DNN_BACKEND_CUDA)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_CUDA);
     testONNXModels("lstm_layout_1", npy, 0.005, 0.005, false, false, 3);
+}
+
+TEST_P(Test_ONNX_layers, DISABLED_Einsum_1D)
+{
+    testONNXModels("einsum_1d", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, Einsum_2D)
+{
+    testONNXModels("einsum_2d", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, Einsum_3D)
+{
+    testONNXModels("einsum_3d", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, Einsum_4D)
+{
+    testONNXModels("einsum_4d", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, Einsum_5D)
+{
+    testONNXModels("einsum_5d", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, DISABLED_Einsum_InnerProduct)
+{
+    testONNXModels("einsum_inner", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, DISABLED_Einsum_HadamardProduct)
+{
+    testONNXModels("einsum_hadamard", npy, 0, 0, false, false, 2);
+}
+
+TEST_P(Test_ONNX_layers, DISABLED_Einsum_Batch_Diagonal)
+{
+    testONNXModels("einsum_batch_diagonal", npy, 0, 0, false, false, 1);
+}
+
+TEST_P(Test_ONNX_layers, Einsum_Sum)
+{
+    testONNXModels("einsum_sum", npy, 0, 0, false, false, 1);
+}
+
+TEST_P(Test_ONNX_layers, Einsum_transpose)
+{
+    testONNXModels("einsum_transpose", npy, 0, 0, false, false, 1);
 }
 
 TEST_P(Test_ONNX_layers, Pad2d_Unfused)
@@ -1999,6 +2056,12 @@ TEST_P(Test_ONNX_layers, OutputRegistration)
     testONNXModels("output_registration", npy, 0, 0, false, true, 2);
 }
 
+TEST_P(Test_ONNX_layers, QLinearSoftmax)
+{
+    testONNXModels("qlinearsoftmax_v11", npy, 0.002, 0.002); // 2D coerced
+    testONNXModels("qlinearsoftmax_v13", npy, 0.002, 0.002);
+}
+
 INSTANTIATE_TEST_CASE_P(/*nothing*/, Test_ONNX_layers, dnnBackendsAndTargets());
 
 class Test_ONNX_nets : public Test_ONNX_layers
@@ -2582,6 +2645,40 @@ TEST_P(Test_ONNX_layers, OpenAI_CLIP_head)
 TEST_P(Test_ONNX_layers, where_node)
 {
     testONNXModels("where_layer");
+}
+
+TEST_P(Test_ONNX_layers, Conformance_Gemm_all_attributes) {
+    testONNXModels("test_gemm_all_attributes", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_alpha) {
+    testONNXModels("test_gemm_alpha", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_beta) {
+    testONNXModels("test_gemm_beta", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_default_matrix_bias) {
+    testONNXModels("test_gemm_default_matrix_bias", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_default_no_bias) {
+    testONNXModels("test_gemm_default_no_bias", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_default_scalar_bias) {
+    testONNXModels("test_gemm_default_scalar_bias", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_default_single_elem_vector_bias) {
+    testONNXModels("test_gemm_default_single_elem_vector_bias", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_default_vector_bias) {
+    testONNXModels("test_gemm_default_vector_bias", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_default_zero_bias) {
+    testONNXModels("test_gemm_default_zero_bias", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_transposeA) {
+    testONNXModels("test_gemm_transposeA", pb, 0, 0, false, true, 2);
+}
+TEST_P(Test_ONNX_layers, Conformance_Gemm_transposeB) {
+    testONNXModels("test_gemm_transposeB", pb, 0, 0, false, true, 2);
 }
 
 INSTANTIATE_TEST_CASE_P(/**/, Test_ONNX_nets, dnnBackendsAndTargets());
