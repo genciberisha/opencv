@@ -201,6 +201,14 @@ namespace cv {
 #  define CV_ICC   __INTEL_COMPILER
 #endif
 
+#if defined _WIN32
+#  define CV_CDECL __cdecl
+#  define CV_STDCALL __stdcall
+#else
+#  define CV_CDECL
+#  define CV_STDCALL
+#endif
+
 #ifndef CV_INLINE
 #  if defined __cplusplus
 #    define CV_INLINE static inline
@@ -470,6 +478,7 @@ Cv64suf;
 #define CV_OUT
 #define CV_PROP
 #define CV_PROP_RW
+#define CV_ND // Indicates that input data should be parsed into Mat without channels
 #define CV_WRAP
 #define CV_WRAP_AS(synonym)
 #define CV_WRAP_MAPPABLE(mappable)
@@ -482,6 +491,7 @@ Cv64suf;
 *                                  Matrix type (Mat)                                     *
 \****************************************************************************************/
 
+#define CV_MAX_DIM              32
 #define CV_MAT_CN_MASK          ((CV_CN_MAX - 1) << CV_CN_SHIFT)
 #define CV_MAT_CN(flags)        ((((flags) & CV_MAT_CN_MASK) >> CV_CN_SHIFT) + 1)
 #define CV_MAT_TYPE_MASK        (CV_DEPTH_MAX*CV_CN_MAX - 1)
@@ -507,6 +517,13 @@ Cv64suf;
 #ifndef MAX
 #  define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
+
+/** min & max without jumps */
+#define CV_IMIN(a, b)  ((a) ^ (((a)^(b)) & (((a) < (b)) - 1)))
+#define CV_IMAX(a, b)  ((a) ^ (((a)^(b)) & (((a) > (b)) - 1)))
+#define CV_SWAP(a,b,t) ((t) = (a), (a) = (b), (b) = (t))
+#define CV_CMP(a,b)    (((a) > (b)) - ((a) < (b)))
+#define CV_SIGN(a)     CV_CMP((a),0)
 
 ///////////////////////////////////////// Enum operators ///////////////////////////////////////
 
@@ -730,7 +747,11 @@ __CV_ENUM_FLAGS_BITWISE_XOR_EQ   (EnumType, EnumType)                           
 #    define __has_cpp_attribute(__x) 0
 #  endif
 #  if __has_cpp_attribute(nodiscard)
-#    define CV_NODISCARD_STD [[nodiscard]]
+#    if defined(__NVCC__) && __CUDACC_VER_MAJOR__ < 12
+#       define CV_NODISCARD_STD
+#    else
+#       define CV_NODISCARD_STD [[nodiscard]]
+#    endif
 #  elif __cplusplus >= 201703L
 //   available when compiler is C++17 compliant
 #    define CV_NODISCARD_STD [[nodiscard]]
@@ -906,6 +927,17 @@ typedef hfloat float16_t;
 
 }
 #endif
+
+/** @brief Constructs the 'fourcc' code, used in video codecs and many other places.
+    Simply call it with 4 chars like `CV_FOURCC('I', 'Y', 'U', 'V')`
+*/
+CV_INLINE int CV_FOURCC(char c1, char c2, char c3, char c4)
+{
+    return (c1 & 255) + ((c2 & 255) << 8) + ((c3 & 255) << 16) + ((c4 & 255) << 24);
+}
+
+//! Macro to construct the fourcc code of the codec. Same as CV_FOURCC()
+#define CV_FOURCC_MACRO(c1, c2, c3, c4) (((c1) & 255) + (((c2) & 255) << 8) + (((c3) & 255) << 16) + (((c4) & 255) << 24))
 
 //! @}
 
