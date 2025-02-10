@@ -98,6 +98,21 @@ inline int hal_ni_sub64f(const double *src1_data, size_t src1_step, const double
 
 inline int hal_ni_sub8u32f(const uchar *src1_data, size_t src1_step, const uchar *src2_data, size_t src2_step, float *dst_data, size_t dst_step, int width, int height) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
 inline int hal_ni_sub8s32f(const schar *src1_data, size_t src1_step, const schar *src2_data, size_t src2_step, float *dst_data, size_t dst_step, int width, int height) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+
+/**
+Add scalar: _dst[i] = src[i] + scalar
+
+@param src_data source image data
+@param src_step source image step
+@param dst_data destination image data
+@param dst_step destination image step
+@param width width of the images
+@param height height of the images
+@param scalar_data pointer to scalar value
+@param nChannels number of channels per element
+*/
+inline int hal_ni_addScalar32f32f(const float*   src_data, size_t src_step, float*   dst_data, size_t dst_step, int width, int height, const float*   scalar_data, int nChannels) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+inline int hal_ni_addScalar16s16s(const int16_t* src_data, size_t src_step, int16_t* dst_data, size_t dst_step, int width, int height, const int16_t* scalar_data, int nChannels) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
 //! @}
 
 /**
@@ -151,6 +166,23 @@ inline int hal_ni_absdiff16s(const short *src1_data, size_t src1_step, const sho
 inline int hal_ni_absdiff32s(const int *src1_data, size_t src1_step, const int *src2_data, size_t src2_step, int *dst_data, size_t dst_step, int width, int height) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
 inline int hal_ni_absdiff32f(const float *src1_data, size_t src1_step, const float *src2_data, size_t src2_step, float *dst_data, size_t dst_step, int width, int height) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
 inline int hal_ni_absdiff64f(const double *src1_data, size_t src1_step, const double *src2_data, size_t src2_step, double *dst_data, size_t dst_step, int width, int height) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+
+/*
+Absolute difference with scalar: _dst[i] = | src[i] - scalar |_
+
+@param src_data source image data
+@param src_step source image step
+@param dst_data destination image data
+@param dst_step destination image step
+@param width width of the images
+@param height height of the images
+@param scalar_data pointer to scalar value
+@param nChannels number of channels per element
+*/
+inline int hal_ni_absDiffScalar32f32f(const float* src_data, size_t src_step, float*    dst_data, size_t dst_step, int width, int height, const float* scalar_data, int nChannels) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+inline int hal_ni_absDiffScalar32s32u(const int*   src_data, size_t src_step, uint32_t* dst_data, size_t dst_step, int width, int height, const int*   scalar_data, int nChannels) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+inline int hal_ni_absDiffScalar8u8u  (const uchar* src_data, size_t src_step, uchar*    dst_data, size_t dst_step, int width, int height, const uchar* scalar_data, int nChannels) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+
 //! @}
 
 /**
@@ -192,6 +224,8 @@ inline int hal_ni_not8u(const uchar *src_data, size_t src_step, uchar *dst_data,
 #define cv_hal_sub64f hal_ni_sub64f
 #define cv_hal_sub8u32f hal_ni_sub8u32f
 #define cv_hal_sub8s32f hal_ni_sub8s32f
+#define cv_hal_addScalar32f32f hal_ni_addScalar32f32f
+#define cv_hal_addScalar16s16s hal_ni_addScalar16s16s
 #define cv_hal_max8u hal_ni_max8u
 #define cv_hal_max8s hal_ni_max8s
 #define cv_hal_max16u hal_ni_max16u
@@ -213,6 +247,9 @@ inline int hal_ni_not8u(const uchar *src_data, size_t src_step, uchar *dst_data,
 #define cv_hal_absdiff32s hal_ni_absdiff32s
 #define cv_hal_absdiff32f hal_ni_absdiff32f
 #define cv_hal_absdiff64f hal_ni_absdiff64f
+#define cv_hal_absDiffScalar32f32f hal_ni_absDiffScalar32f32f
+#define cv_hal_absDiffScalar32s32u hal_ni_absDiffScalar32s32u
+#define cv_hal_absDiffScalar8u8u   hal_ni_absDiffScalar8u8u
 #define cv_hal_and8u hal_ni_and8u
 #define cv_hal_or8u hal_ni_or8u
 #define cv_hal_xor8u hal_ni_xor8u
@@ -270,9 +307,69 @@ Hamming distance between two vectors
 inline int hal_ni_normHammingDiff8u(const uchar* a, const uchar* b, int n, int cellSize, int* result) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
 //! @}
 
+/**
+@brief Generic norm of an array.
+@param src Source image
+@param src_step Source image
+@param mask Specified array region.
+@param mask_step Mask array step.
+@param width Source image dimensions
+@param height Source image dimensions
+@param type Element type of source image
+@param norm_type Type of the norm
+@param result Pointer to result output
+*/
+//! @addtogroup core_hal_interface_norm Absolute norm
+//! @{
+inline int hal_ni_norm(const uchar* src, size_t src_step, const uchar* mask, size_t mask_step, int width,
+                       int height, int type, int norm_type, double* result) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+//! @}
+
+/**
+@brief Generic norm between two arrays.
+@param src1 First source image
+@param src1_step First source image
+@param src2 Second source image
+@param src2_step Second source image
+@param mask Specified array region.
+@param mask_step Mask array step.
+@param width Source image dimensions
+@param height Source image dimensions
+@param type Element type of source image
+@param norm_type Type of the norm
+@param result Pointer to result output
+*/
+//! @addtogroup core_hal_interface_norm Absolute norm
+//! @{
+inline int hal_ni_normDiff(const uchar* src1, size_t src1_step, const uchar* src2, size_t src2_step, const uchar* mask,
+                           size_t mask_step, int width, int height, int type, int norm_type, double* result) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+//! @}
+
+/**
+@brief Convert array to another with specified type.
+@param src Source image
+@param src_step Source image
+@param dst Destination image
+@param dst_step Destination image
+@param width Source image dimensions
+@param height Source image dimensions
+@param sdepth Depth of source image
+@param ddepth Depth of destination image
+@param alpha Scale value
+@param beta Shift value
+*/
+//! @addtogroup core_hal_interface_convert Array convert
+//! @{
+inline int hal_ni_convertScale(const uchar* src, size_t src_step, uchar* dst, size_t dst_step, int width, int height,
+                               int sdepth, int ddepth, double alpha, double beta) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+//! @}
+
 //! @cond IGNORED
 #define cv_hal_normHamming8u hal_ni_normHamming8u
 #define cv_hal_normHammingDiff8u hal_ni_normHammingDiff8u
+#define cv_hal_norm hal_ni_norm
+#define cv_hal_normDiff hal_ni_normDiff
+#define cv_hal_convertScale hal_ni_convertScale
 //! @endcond
 
 /**
@@ -874,8 +971,26 @@ inline int hal_ni_gemm64fc(const double* src1, size_t src1_step, const double* s
 inline int hal_ni_minMaxIdx(const uchar* src_data, size_t src_step, int width, int height, int depth, double* minVal, double* maxVal,
                             int* minIdx, int* maxIdx, uchar* mask) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
 
+/**
+   @brief Finds the global minimum and maximum in an array.
+   @param src_data Source image
+   @param src_step Source image
+   @param width Source image dimensions
+   @param height Source image dimensions
+   @param depth Depth of source image
+   @param minVal Pointer to the returned global minimum and maximum in an array.
+   @param maxVal Pointer to the returned global minimum and maximum in an array.
+   @param minIdx Pointer to the returned minimum and maximum location.
+   @param maxIdx Pointer to the returned minimum and maximum location.
+   @param mask Specified array region.
+   @param mask_step Mask array step.
+*/
+inline int hal_ni_minMaxIdxMaskStep(const uchar* src_data, size_t src_step, int width, int height, int depth, double* minVal, double* maxVal,
+                                    int* minIdx, int* maxIdx, uchar* mask, size_t mask_step) { return CV_HAL_ERROR_NOT_IMPLEMENTED; }
+
 //! @cond IGNORED
 #define cv_hal_minMaxIdx hal_ni_minMaxIdx
+#define cv_hal_minMaxIdxMaskStep hal_ni_minMaxIdxMaskStep
 //! @endcond
 
 /**
